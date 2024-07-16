@@ -67,7 +67,7 @@ This plug sets `x-request-id`, which is required for the Paraxial agent to work 
 ```elixir
 def deps do
   [
-    {:paraxial, "~> 2.3.1"}
+    {:paraxial, "~> 2.7.7"}
   ]
 end
 ```
@@ -79,7 +79,6 @@ In your Paraxial.io account, we recommend creating two different sites for your 
 ```elixir
 config :paraxial,
   paraxial_api_key: System.get_env("PARAXIAL_API_KEY"),
-  paraxial_url: "https://app.paraxial.io",
   fetch_cloud_ips: true,
   bulk: %{email: %{trusted: 100, untrusted: 3}},
   trusted_domains: MapSet.new(["paraxial.io", "blackcatprojects.xyz"])
@@ -124,7 +123,6 @@ config :logger, level: :debug
 ```elixir
 config :paraxial,
   paraxial_api_key: System.get_env("PARAXIAL_API_KEY"),
-  paraxial_url: "https://app.paraxial.io",
   fetch_cloud_ips: true,
   bulk: %{email: %{trusted: 100, untrusted: 3}},
   trusted_domains: MapSet.new(["paraxial.io", "blackcatprojects.xyz"])
@@ -182,7 +180,7 @@ Good start:
 
 ## 4. Paraxial Functions
 
-As of 2.3.1 there is only one Paraxial function intended for use by users:
+There is only one Paraxial function intended for use by users:
 
 1. `Paraxial.bulk_allowed?/3`
 

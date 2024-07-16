@@ -42,7 +42,7 @@ defmodule Paraxial.Crow do
         fail_count = :ets.update_counter(:parax_counters, :failed_abr, {2, 1}, {:failed_abr, 0})
 
         if fail_count > @max_fail_count do
-          Logger.warn("[Paraxial] Allows Bans Rules get failed many times, check configuration.")
+          Logger.error("[Paraxial] Allows Bans Rules get failed many times, check configuration.")
         end
 
         fail_count

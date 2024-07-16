@@ -13,7 +13,7 @@ defmodule Paraxial.Fetcher do
         :persistent_term.put({__MODULE__, :cloud_trie}, ip_trie)
 
       _ ->
-        Logger.warn("[Paraxial] :fetch_cloud_ips failed, agent will behave as if set to false")
+        Logger.error("[Paraxial] :fetch_cloud_ips failed, agent will behave as if set to false")
         :persistent_term.put({__MODULE__, :cloud_trie}, Iptrie.new())
     end
   end

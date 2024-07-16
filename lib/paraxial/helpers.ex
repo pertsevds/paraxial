@@ -10,7 +10,8 @@ defmodule Paraxial.Helpers do
   end
 
   def get_base_url() do
-    Application.get_env(:paraxial, :paraxial_url)
+    Application.get_env(:paraxial, :paraxial_url) ||
+      "https://app.paraxial.io"
   end
 
   def get_bulk_map() do
@@ -19,6 +20,14 @@ defmodule Paraxial.Helpers do
 
   def get_trusted_domains() do
     Application.get_env(:paraxial, :trusted_domains)
+  end
+
+  def get_exploit_guard() do
+    Application.get_env(:paraxial, :exploit_guard)
+  end
+
+  def get_app_audit() do
+    Application.get_env(:paraxial, :app_audit)
   end
 
   def get_ingest_url() do
@@ -35,6 +44,30 @@ defmodule Paraxial.Helpers do
 
   def get_scan_ingest_url() do
     get_base_url() <> "/api/scan"
+  end
+
+  def get_exploit_ingest_url() do
+    get_base_url() <> "/api/exploit"
+  end
+
+  def get_app_audit_url() do
+    get_base_url() <> "/api/app_audit"
+  end
+
+  def get_github_app_url() do
+    get_base_url() <> "/api/github_app"
+  end
+
+  def get_sarif_url() do
+    get_base_url() <> "/api/sarif"
+  end
+
+  def get_post_rule_event_url() do
+    get_base_url() <> "/api/post_rule_event"
+  end
+
+  def get_free_tier_url() do
+    get_base_url() <> "/api/free_tier"
   end
 
   def get_path_list(path) do

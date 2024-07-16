@@ -21,7 +21,9 @@ defmodule Paraxial.RecordPlug do
 
   @only Application.compile_env(:paraxial, :only, nil)
   @except Application.compile_env(:paraxial, :except, nil)
-  Logger.info("[Paraxial] only/except must be set at compile time, only: #{inspect @only}, except: #{inspect @except}")
+  Logger.info(
+    "[Paraxial] only/except must be set at compile time, only: #{inspect(@only)}, except: #{inspect(@except)}"
+  )
 
   cond do
     @only && @except ->

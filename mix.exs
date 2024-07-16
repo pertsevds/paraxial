@@ -4,7 +4,7 @@ defmodule Paraxial.MixProject do
   def project do
     [
       app: :paraxial,
-      version: "2.3.1",
+      version: "2.7.7",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -48,9 +48,14 @@ defmodule Paraxial.MixProject do
       "documentation/user_manual.md",
       "documentation/install.md",
       "documentation/code_scans.md",
+      "documentation/bot_defense_setup.md",
+      "documentation/live_view_bot_defense.md",
+      "documentation/github_app.md",
+      "documentation/slack_app.md",
       "README.md",
       "documentation/agent.md",
       "documentation/cloud_ips.md",
+      "documentation/app_audit.md",
       "documentation/CHANGELOG.md"
     ]
   end
@@ -59,12 +64,13 @@ defmodule Paraxial.MixProject do
     [
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:httpoison, "~> 1.0"},
+      {:httpoison, ">= 1.0.0"},
       {:inet_cidr, "~> 1.0"},
-      {:iptrie, "~> 0.8.0"},
+      {:iptrie, ">= 0.8.0"},
       {:ex_doc, "~> 0.28.4", only: :dev},
-      {:sobelow, "~> 0.12.1"},
-      {:mix_audit, "~> 2.1"}
+      {:sobelow, ">= 0.12.2"},
+      {:mix_audit, "~> 2.1"},
+      {:recon, ">= 2.3.0"}
     ]
   end
 

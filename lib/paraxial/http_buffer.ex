@@ -53,9 +53,14 @@ defmodule Paraxial.HTTPBuffer do
   def send_http(state) do
     j_body = wrap_json(state)
 
-    Task.start(fn ->
-      HTTPoison.post(get_ingest_url(), j_body, [{"Content-Type", "application/json"}])
-    end)
+    if :ets.lookup(:parax_meta, :free_tier)[:free_tier] == true do
+      # Do not send HTTP events when free tier is set to true
+      :ok
+    else
+      Task.start(fn ->
+        HTTPoison.post(get_ingest_url(), j_body, [{"Content-Type", "application/json"}])
+      end)
+    end
   end
 
   def wrap_json(state) do
@@ -118,7 +123,8 @@ defmodule Paraxial.HTTPBuffer do
       login_success: login_success,
       ambient_user: ambient_user,
       inserted_at: inserted_at,
-      cloud_ip: conn.assigns[:paraxial_cloud_ip]
+      cloud_ip: conn.assigns[:paraxial_cloud_ip],
+      host: conn.host
     }
   end
 

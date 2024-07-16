@@ -1,13 +1,25 @@
 defmodule Paraxial.Scan do
   @moduledoc false
 
-  @derive Jason.Encoder
-  defstruct [:timestamp, :findings, :api_key]
-
   alias Paraxial.Finding
 
   def get_timestamp() do
     DateTime.utc_now()
+  end
+
+  def make_license(license_scan) do
+    license_scan
+    |> Enum.map(fn [dep, version, license] ->
+      %Finding{
+        source: "license_scan",
+        content: %{
+          "dependency" => dep,
+          "version" => version,
+          "license" => license,
+          "reason" => "GPL software is not allowed for this site."
+        }
+      }
+    end)
   end
 
   def make_sobelow(raw_scan) do
@@ -17,14 +29,18 @@ defmodule Paraxial.Scan do
     case Jason.decode(raw_scan) do
       {:ok, scan_map} ->
         sobelow_get_findings(scan_map)
+
       {:error, _e} ->
         # Umbrella app
         many_scans = String.split(raw_scan, "\n\n") |> tl()
+
         Enum.map(many_scans, fn one_scan ->
           string_json = String.split(one_scan, "\n==>") |> hd()
+
           case Jason.decode(string_json) do
             {:ok, scan_map} ->
               sobelow_get_findings(scan_map)
+
             _ ->
               []
           end
@@ -76,6 +92,16 @@ defmodule Paraxial.Scan do
         content: fmap
       }
     end
+  end
+
+  def print_findings(findings) do
+    Enum.map(findings, fn finding ->
+      IO.puts("[Paraxial] #{finding.source}")
+      Enum.each(Map.to_list(finding.content), fn {label, line} ->
+        IO.puts("  #{label}: #{line}")
+      end)
+      IO.puts("")
+    end)
   end
 
   # Input: Raw output from mix hex.audit
