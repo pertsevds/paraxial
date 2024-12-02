@@ -6,10 +6,16 @@ defmodule Mix.Tasks.Paraxial.Scan do
   alias Paraxial.Helpers
 
   @gh_app_args ["--github_app", "--install_id", "--repo_owner", "--repo_name", "--pr_number"]
+  @gl_app_args ["--gitlab_app", "--gitlab_token", "--gitlab_project", "--merge_request"]
   @flag_args ["--paraxial_url", "--paraxial_api_key"]
 
   @valid_flags [
     "--github_app",
+    "--gitlab_app",
+    "--gitlab_token",
+    "--gitlab_project",
+    "--gitlab_url",
+    "--merge_request",
     "--install_id",
     "--repo_owner",
     "--repo_name",
@@ -47,6 +53,8 @@ defmodule Mix.Tasks.Paraxial.Scan do
     HTTPoison.start()
     api_key = Helpers.get_api_key()
 
+    version = Paraxial.Helpers.version()
+    Logger.info("[Paraxial] v#{version}, scan starting")
     if api_key == nil do
       Logger.error("[Paraxial] API key NOT found, scan results cannot be uploaded")
     else
@@ -212,6 +220,26 @@ defmodule Mix.Tasks.Paraxial.Scan do
           :ok
       end
 
+    gitlab_resp =
+      cond do
+        Enum.all?(@gl_app_args, fn a -> a in args end) and scan_info == :error ->
+          Logger.error("[Paraxial] Gitlab upload did not run due to original scan upload failure.")
+          :error
+        Enum.all?(@gl_app_args, fn a -> a in args end) ->
+          Logger.info("[Paraxial] Gitlab App Correct Arguments")
+          gitlab_app_upload(args, scan_info)
+
+        "--gitlab_app" in args ->
+          Logger.error(
+            "[Paraxial] --gitlab_app is missing arguments. Required: --gitlab_token, --gitlab_project, --merge_request"
+          )
+          :error
+
+        true ->
+          # When the --gitlab_app flag is not present
+          :ok
+      end
+
     if "--sarif" in args do
       url = Paraxial.Helpers.get_sarif_url()
       # get the enriched version
@@ -224,8 +252,52 @@ defmodule Mix.Tasks.Paraxial.Scan do
       end
     end
 
-    if "--add-exit-code" in args and (length(scan.findings) > 0 or scan_info == :error or github_resp == :error) do
+    if "--add-exit-code" in args and (length(scan.findings) > 0 or scan_info == :error or github_resp == :error or gitlab_resp == :error) do
       exit({:shutdown, 1})
+    end
+  end
+
+  def gitlab_app_upload(args, scan_info) do
+    regex = ~r/UUID (.+)/
+    captures = Regex.run(regex, scan_info, capture: :all_but_first)
+    scan_uuid = Enum.at(captures, 0)
+
+    gl_all_args =  ["--gitlab_url" | @gl_app_args]
+    cli_map = args_to_map(args, gl_all_args)
+
+    censored_backend_map = %{
+      "gitlab_url" => Map.get(cli_map, "--gitlab_url", "https://gitlab.com"),
+      "gitlab_project" => Map.get(cli_map, "--gitlab_project"),
+      "merge_request" => Map.get(cli_map, "--merge_request"),
+      "scan_uuid" => scan_uuid,
+      "api_key" => "REDACTED",
+      "gitlab_token" => "REDACTED"
+    }
+
+    IO.inspect(censored_backend_map, label: "[Paraxial] Gitlab upload info")
+
+    backend_map =
+      censored_backend_map
+      |> Map.put("api_key", Helpers.get_api_key())
+      |> Map.put("gitlab_token", Map.get(cli_map, "--gitlab_token"))
+
+    url = Helpers.get_gitlab_app_url()
+    json = Jason.encode!(backend_map)
+
+    case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+      {:ok, %{body: body}} ->
+        if String.contains?(body, "comment created") do
+          Logger.info("[Paraxial] Gitlab PR Comment Created successfully")
+          :ok
+        else
+          Logger.error("[Paraxial] Gitlab PR Comment failed")
+          Logger.error("[Paraxial] #{body}")
+          :error
+        end
+
+      _ ->
+        Logger.error("[Paraxial] Gitlab PR Comment failed")
+        :error
     end
   end
 

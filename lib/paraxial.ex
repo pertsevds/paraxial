@@ -9,6 +9,57 @@ defmodule Paraxial do
   require Logger
 
   @doc """
+  Ban an IP address, both locally and on the Paraxial.io backend.
+
+  Returns the result of an HTTP request, for example:
+
+  {:ok, "ban created"} - returned on successful ban
+
+  {:error, "ban not created"} - returned if you attempt to ban an IP that is already banned
+
+  {:error, "invalid length, valid options are :hour, :day, :week, :infinity"}
+
+  If you are using this function in a blocking content, call with Task.start, https://hexdocs.pm/elixir/1.12/Task.html#start/1
+
+  - `ip` - Format should match conn.remote_ip, which is a list
+  - `length` - Valid options are :hour, :day, :week, :infinity
+  - `message` - A text comment, for example "Submitted honeypot HTML form"
+
+  """
+  def ban_ip(ip, length, message) do
+    # add ip to local_bans
+    :ets.insert(:local_bans, {ip})
+
+    # translate IP to string
+    ip = Paraxial.HTTPBuffer.ip_to_string(ip)
+
+    # send HTTP request to /api/ruby_ban_x
+    m = %{
+      "bad_ip" => ip,
+      "ban_length" => length,
+      "msg" => message,
+      "api_key" => Helpers.get_api_key()
+    }
+    json = Jason.encode!(m)
+    url = Helpers.get_ban_url()
+    resp = HTTPoison.post(url, json, [{"Content-Type", "application/json"}])
+
+    cond do
+      length not in [:hour, :day, :week, :infinity] ->
+        {:error, "invalid length, valid options are :hour, :day, :week, :infinity"}
+      match?({:error, _}, resp) ->
+        {:error, "http request error"}
+      match?({:ok, %HTTPoison.Response{status_code: 200, body: "{\"ok\":\"ban not created\"}"}}, resp) ->
+        {:error, "ban not created"}
+      match?({:ok, %HTTPoison.Response{status_code: 200, body: "{\"ok\":\"ban created\"}"}}, resp) ->
+        {:ok, "ban created"}
+      true ->
+        {:error, "unknown response from server"}
+    end
+  end
+
+
+  @doc """
   Rate limiter that will also ban the relevant IP address via Paraxial.io.
 
   Returns `{:allow, n} or {:deny, n}`
@@ -37,6 +88,7 @@ defmodule Paraxial do
       |> put_resp_content_type("text/html")
       |> send_resp(401, "Banned")
   end
+  ```
   """
   def check_rate(key, seconds, count, ban_length, ip, msg) do
     ms = seconds * 1000

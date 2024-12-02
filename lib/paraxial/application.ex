@@ -15,14 +15,15 @@ defmodule Paraxial.Application do
 
     config_invalid = is_nil(base_url) or is_nil(api_key)
 
+    version = Paraxial.Helpers.version()
     children =
       if config_invalid do
         :persistent_term.put(:valid_config, false)
-        Logger.info("[Paraxial] Configuration is not valid, agent will not be started")
+        Logger.info("[Paraxial] v#{version} Configuration is not valid, agent will not be started")
         []
       else
         :persistent_term.put(:valid_config, true)
-        Logger.info("[Paraxial] URL and API key found. Agent will be started")
+        Logger.info("[Paraxial] v#{version} URL and API key found. Agent will be started")
 
         # This order is important, Crow holds an ETS table, :rule_names, that
         # CrowSup's local_rule servers call on terminate.

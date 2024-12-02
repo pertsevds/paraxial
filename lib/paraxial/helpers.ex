@@ -58,6 +58,10 @@ defmodule Paraxial.Helpers do
     get_base_url() <> "/api/github_app"
   end
 
+  def get_gitlab_app_url() do
+    get_base_url() <> "/api/gitlab_app"
+  end
+
   def get_sarif_url() do
     get_base_url() <> "/api/sarif"
   end
@@ -68,6 +72,14 @@ defmodule Paraxial.Helpers do
 
   def get_free_tier_url() do
     get_base_url() <> "/api/free_tier"
+  end
+
+  def get_ban_url() do
+    get_base_url() <> "/api/ruby_ban_x"
+  end
+
+  def version() do
+    "2.8.0"
   end
 
   def get_path_list(path) do
