@@ -27,7 +27,8 @@ defmodule Mix.Tasks.Paraxial.Scan do
     "--gpl-check",
     "--add-exit-code",
     "--sarif",
-    "--no-license-scan"
+    "--no-license-scan",
+    "--quiet-no-issues"
   ]
 
   @impl Mix.Task
@@ -313,6 +314,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
       "repository_owner" => Map.get(cli_map, "--repo_owner"),
       "repository_name" => Map.get(cli_map, "--repo_name"),
       "pull_request_number" => Map.get(cli_map, "--pr_number"),
+      "quiet_no_issues" => "--quiet-no-issues" in args,
       "scan_uuid" => scan_uuid,
       "api_key" => "REDACTED"
     }
@@ -329,15 +331,21 @@ defmodule Mix.Tasks.Paraxial.Scan do
 
     case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
       {:ok, %{body: body}} ->
-        if String.contains?(body, "Comment created successfully") do
-          Logger.info("[Paraxial] Github PR Comment Created successfully")
-          Logger.info("[Paraxial] URL: #{debug_url}")
-          :ok
-        else
-          Logger.error("[Paraxial] Github PR Comment failed")
-          :error
-        end
+        cond do
+          String.contains?(body, "Comment created successfully") ->
+            Logger.info("[Paraxial] Github PR Comment Created successfully")
+            Logger.info("[Paraxial] URL: #{debug_url}")
+            :ok
 
+          String.contains?(body, "Comment not created, quiet_no_issues is true") ->
+            Logger.info("[Paraxial] Github PR Comment not created, quiet_no_issues is true")
+            :ok
+
+          true ->
+            IO.inspect(body, label: "[Paraxial] debug HTTP body")
+            Logger.error("[Paraxial] Github PR Comment failed")
+            :error
+        end
       _ ->
         Logger.error("[Paraxial] Github PR Comment failed")
         :error

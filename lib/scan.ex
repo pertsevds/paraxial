@@ -3,6 +3,8 @@ defmodule Paraxial.Scan do
 
   alias Paraxial.Finding
 
+  require Logger
+
   def get_timestamp() do
     DateTime.utc_now()
   end
@@ -68,6 +70,20 @@ defmodule Paraxial.Scan do
     |> String.split("\n\n")
     |> Enum.map(&dep_to_finding/1)
     |> List.flatten()
+    |> filter_deps()
+  end
+
+  def filter_deps(deps_list) do
+    if File.exists?("./.paraxial-ignore-deps") do
+      Logger.info("[Paraxial] Ignoring dependencies listed in .paraxial-ignore-deps")
+      ignore_list = File.read!("./.paraxial-ignore-deps") |> String.split("\n") |> Enum.reject(&(&1 == "")) |> Enum.map(&(String.trim(&1)))
+      IO.inspect(ignore_list, label: "[Paraxial] .paraxial-ignore-deps list")
+      Enum.reject(deps_list, fn finding ->
+        String.trim(finding.content["Name"]) in ignore_list
+      end)
+    else
+      deps_list
+    end
   end
 
   def fpart_to_tuple(fpart) do

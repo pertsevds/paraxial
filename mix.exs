@@ -4,7 +4,7 @@ defmodule Paraxial.MixProject do
   def project do
     [
       app: :paraxial,
-      version: "2.8.0",
+      version: "2.8.2",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),

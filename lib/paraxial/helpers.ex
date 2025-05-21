@@ -79,7 +79,7 @@ defmodule Paraxial.Helpers do
   end
 
   def version() do
-    "2.8.0"
+    "2.8.2"
   end
 
   def get_path_list(path) do
