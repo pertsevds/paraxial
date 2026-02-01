@@ -71,6 +71,7 @@ defmodule Paraxial.Scan do
     |> Enum.map(&dep_to_finding/1)
     |> List.flatten()
     |> filter_deps()
+    |> Enum.filter(fn finding -> severity_exists?(finding) end)
   end
 
   def filter_deps(deps_list) do
@@ -84,6 +85,12 @@ defmodule Paraxial.Scan do
     else
       deps_list
     end
+  end
+
+  defp severity_exists?(fmap) do
+    Enum.any?(Map.keys(fmap.content), fn key ->
+      String.downcase(key) == "severity"
+    end)
   end
 
   def fpart_to_tuple(fpart) do
@@ -101,6 +108,9 @@ defmodule Paraxial.Scan do
       fmap =
         finding
         |> Enum.map(&fpart_to_tuple/1)
+        # On some Elixir apps compilation metadata shows up here as tuples of 1
+        # Filter out tuples that do not equal length 2 to avoid errors
+        |> Enum.filter(fn tup -> tuple_size(tup) == 2 end)
         |> Map.new()
 
       %Finding{

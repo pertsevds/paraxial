@@ -195,8 +195,9 @@ defmodule Mix.Tasks.Paraxial.Scan do
             :error
           end
 
-        _ ->
+        e ->
           Logger.error("[Paraxial] Scan upload failed, check configuration.")
+          IO.inspect(e, label: "[Paraxial] debug HTTP")
           :error
       end
 
