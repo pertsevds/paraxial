@@ -15,7 +15,7 @@ defmodule Paraxial.AppAudit do
 
     json = Jason.encode!(app_map)
 
-    case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+    case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
       {:ok, %{status_code: 200}} ->
         Logger.info("[Paraxial] App Audit upload success")
 

@@ -4,7 +4,7 @@ defmodule Paraxial.MixProject do
   def project do
     [
       app: :paraxial,
-      version: "2.8.4",
+      version: "2.9.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -64,7 +64,8 @@ defmodule Paraxial.MixProject do
     [
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-      {:httpoison, ">= 1.0.0"},
+      {:httpoison, ">= 1.0.0", optional: true},
+      {:req, "~> 0.5", optional: true},
       {:inet_cidr, "~> 1.0"},
       {:iptrie, ">= 0.8.0"},
       {:ex_doc, "~> 0.28.4", only: :dev},

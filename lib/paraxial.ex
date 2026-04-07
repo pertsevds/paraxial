@@ -42,16 +42,16 @@ defmodule Paraxial do
     }
     json = Jason.encode!(m)
     url = Helpers.get_ban_url()
-    resp = HTTPoison.post(url, json, [{"Content-Type", "application/json"}])
+    resp = Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}])
 
     cond do
       length not in [:hour, :day, :week, :infinity] ->
         {:error, "invalid length, valid options are :hour, :day, :week, :infinity"}
       match?({:error, _}, resp) ->
         {:error, "http request error"}
-      match?({:ok, %HTTPoison.Response{status_code: 200, body: "{\"ok\":\"ban not created\"}"}}, resp) ->
+      match?({:ok, %{status_code: 200, body: "{\"ok\":\"ban not created\"}"}}, resp) ->
         {:error, "ban not created"}
-      match?({:ok, %HTTPoison.Response{status_code: 200, body: "{\"ok\":\"ban created\"}"}}, resp) ->
+      match?({:ok, %{status_code: 200, body: "{\"ok\":\"ban created\"}"}}, resp) ->
         {:ok, "ban created"}
       true ->
         {:error, "unknown response from server"}
@@ -132,7 +132,7 @@ defmodule Paraxial do
     url = Helpers.get_post_rule_event_url()
     json = Jason.encode!(m)
 
-    case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+    case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
       {:ok, %{status_code: 200}} ->
         Logger.info("[Paraxial] Post rule event upload success")
 

@@ -7,7 +7,7 @@ defmodule Paraxial.Fetcher do
   def add_cloud_ips() do
     url = Helpers.get_cloud_ips_url()
 
-    case HTTPoison.get(url) do
+    case Paraxial.HTTPClient.get(url) do
       {:ok, %{body: b}} ->
         ip_trie = :erlang.binary_to_term(b)
         if is_map(ip_trie) do

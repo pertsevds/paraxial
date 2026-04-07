@@ -16,7 +16,7 @@ defmodule Paraxial.FreeCheck do
     # expected values of free?
     # true, false, :json_error, :http_error
     free? =
-      case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+      case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
         {:ok, %{body: body}} ->
           case Jason.decode(body) do
             {:ok, %{"free_tier" => free_tier}} ->

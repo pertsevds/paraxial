@@ -51,7 +51,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
       Application.put_env(:paraxial, :paraxial_api_key, cli_api_key)
     end
 
-    HTTPoison.start()
+    Paraxial.HTTPClient.start()
     api_key = Helpers.get_api_key()
 
     version = Paraxial.Helpers.version()
@@ -183,7 +183,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
     url = Helpers.get_scan_ingest_url()
 
     scan_info =
-      case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+      case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
         {:ok, %{body: body}} ->
           if String.contains?(body, "Scan written successfully") do
             %{"ok" => scan_info} = Jason.decode!(body)
@@ -245,7 +245,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
     if "--sarif" in args do
       url = Paraxial.Helpers.get_sarif_url()
       # get the enriched version
-      case HTTPoison.post(url, sarif_raw, [{"Content-Type", "application/json"}]) do
+      case Paraxial.HTTPClient.post(url, sarif_raw, [{"Content-Type", "application/json"}]) do
         {:ok, %{body: body}} ->
           File.write!("sarif.txt", body)
           Logger.info("[Paraxial] SARIF file written successfully.")
@@ -286,7 +286,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
     url = Helpers.get_gitlab_app_url()
     json = Jason.encode!(backend_map)
 
-    case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+    case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
       {:ok, %{body: body}} ->
         if String.contains?(body, "comment created") do
           Logger.info("[Paraxial] Gitlab PR Comment Created successfully")
@@ -330,7 +330,7 @@ defmodule Mix.Tasks.Paraxial.Scan do
     debug_url =
       "https://github.com/#{cli_map["--repo_owner"]}/#{cli_map["--repo_name"]}/pull/#{cli_map["--pr_number"]}"
 
-    case HTTPoison.post(url, json, [{"Content-Type", "application/json"}]) do
+    case Paraxial.HTTPClient.post(url, json, [{"Content-Type", "application/json"}]) do
       {:ok, %{body: body}} ->
         cond do
           String.contains?(body, "Comment created successfully") ->

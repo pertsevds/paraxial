@@ -19,7 +19,7 @@ defmodule Paraxial.Crow do
 
   def http_post(url) do
     body = get_api_key_map()
-    HTTPoison.post(url, body, [{"Content-Type", "application/json"}])
+    Paraxial.HTTPClient.post(url, body, [{"Content-Type", "application/json"}])
   end
 
   def get_allows_bans_rules() do

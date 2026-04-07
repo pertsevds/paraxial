@@ -58,7 +58,7 @@ defmodule Paraxial.HTTPBuffer do
       :ok
     else
       Task.start(fn ->
-        HTTPoison.post(get_ingest_url(), j_body, [{"Content-Type", "application/json"}])
+        Paraxial.HTTPClient.post(get_ingest_url(), j_body, [{"Content-Type", "application/json"}])
       end)
     end
   end

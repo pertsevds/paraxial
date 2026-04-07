@@ -13,7 +13,9 @@ defmodule Paraxial.Application do
     exploit_guard = Helpers.get_exploit_guard()
     :persistent_term.put(:exploit_guard, exploit_guard)
 
-    config_invalid = is_nil(base_url) or is_nil(api_key)
+    http_client_missing = not check_http_client_dep()
+
+    config_invalid = is_nil(base_url) or is_nil(api_key) or http_client_missing
 
     version = Paraxial.Helpers.version()
     children =
@@ -24,6 +26,7 @@ defmodule Paraxial.Application do
       else
         :persistent_term.put(:valid_config, true)
         Logger.info("[Paraxial] v#{version} URL and API key found. Agent will be started")
+        Paraxial.HTTPClient.start()
 
         # This order is important, Crow holds an ETS table, :rule_names, that
         # CrowSup's local_rule servers call on terminate.
@@ -95,5 +98,14 @@ defmodule Paraxial.Application do
 
     opts = [strategy: :one_for_one, name: Paraxial.Supervisor]
     Supervisor.start_link(children, opts)
+  end
+
+  defp check_http_client_dep do
+    if Paraxial.HTTPClient.dep_available?() do
+      true
+    else
+      Paraxial.HTTPClient.log_missing_http_client()
+      false
+    end
   end
 end
